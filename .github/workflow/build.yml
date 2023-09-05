@@ -1,0 +1,36 @@
+# Build & publish docker images
+name: Build DevOps toolbox image using Containerfile
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  build:
+    name: Build and push image
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build Image
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: devops-toolbox
+        tags: latest ${{ github.sha }}
+        containerfiles: |
+          ./Containerfile
+    - name: Push To Dockerhub
+      id: push-to-docker
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: ${{ steps.build-image.outputs.image }}
+        tags: ${{ steps.build-image.outputs.tags }}
+        registry: docker.io/adathor
+        username: adathor
+        password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+    - name: Print image url
+      run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"

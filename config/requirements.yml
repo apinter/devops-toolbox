@@ -1,0 +1,12 @@
+collections:
+  - name: community.general
+  - name: community.mongodb
+  - name: containers.podman
+  - name: ansible.posix
+  - name: community.kubernetes
+  - name: kubernetes.core
+  - name: google.cloud
+  - name: community.docker 
+  - name: community.mysql
+roles:
+  - newrelic.newrelic-infra
