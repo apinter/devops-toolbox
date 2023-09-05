@@ -19,7 +19,6 @@ jobs:
         remove-dotnet: 'true'
     - name: Checkout
       uses: actions/checkout@v2
-    - uses: actions/checkout@v2
     - name: Build Image
       id: build-image
       uses: redhat-actions/buildah-build@v2.12
