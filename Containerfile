@@ -4,6 +4,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest
 ## Add a custom Ansible config and collections/roles requirements
 COPY config/ansible.cfg /ansible.cfg
 COPY config/requirements.yml /requirements.yml
+COPY config/repo-mongo.repo /etc/zypp/repos.d/repo-mongo.repo
 
 ## Update os and install reuired packages
 RUN zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo && \
@@ -35,6 +36,11 @@ RUN zypper in -y fish \
   htop \
   jq \
   bat && \
+  mongodb-org-tools && \
+  mongodb-mongosh && \
+  postgresql15 && \
+  mariadb-client && \
+  zypper clean -a && \
   zypper in -y --from azure-cli azure-cli
 
 RUN python3 -m venv /devops && /devops/bin/python3 -m pip install ansible \
@@ -44,7 +50,8 @@ RUN python3 -m venv /devops && /devops/bin/python3 -m pip install ansible \
     yamllint \
     glances \
     linode-cli \
-    boto3
+    boto3 \
+    botocore
 
 ## Install k9s
 RUN curl -L https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_amd64.tar.gz -o /tmp/k9s_Linux_x86_64.tar.gz && \
@@ -52,20 +59,15 @@ RUN curl -L https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_
   install -D -p -m 0755 k9s /usr/bin/k9s && \
   rm k9s_Linux_x86_64.tar.gz && rm k9s
 
-## Install mongosh
-RUN curl -L https://downloads.mongodb.com/compass/mongodb-mongosh-1.10.6.x86_64.rpm -o /tmp/mongodb-mongosh-1.10.6.x86_64.rpm && \
-  zypper install --allow-unsigned-rpm -y /tmp/mongodb-mongosh-1.10.6.x86_64.rpm && \
-  rm /tmp/mongodb-mongosh-1.10.6.x86_64.rpm
-
 ## Add the Hashicorp repo and install Terraform
-RUN mkdir tf && cd tf && curl -LO https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_SHA256SUMS && \
-  curl -LO https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_SHA256SUMS.sig && \
-  curl -LO https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_linux_amd64.zip && \
+RUN mkdir tf && cd tf && curl -LO https://releases.hashicorp.com/terraform/1.6.3/terraform_1.6.3_SHA256SUMS && \
+  curl -LO https://releases.hashicorp.com/terraform/1.6.3/terraform_1.6.3_SHA256SUMS.sig && \
+  curl -LO https://releases.hashicorp.com/terraform/1.6.3/terraform_1.6.3_linux_amd64.zip && \
   curl -L -o tf-pgp.key https://www.hashicorp.com/.well-known/pgp-key.txt && \
   gpg --import tf-pgp.key && \
-  gpg --verify terraform_1.5.6_SHA256SUMS.sig terraform_1.5.6_SHA256SUMS && \
-  sha256sum -c terraform_1.5.6_SHA256SUMS 2>&1 | grep OK && \
-  unzip terraform_1.5.6_linux_amd64.zip && \
+  gpg --verify terraform_1.6.3_SHA256SUMS.sig terraform_1.6.3_SHA256SUMS && \
+  sha256sum -c terraform_1.6.3_SHA256SUMS 2>&1 | grep OK && \
+  unzip terraform_1.6.3_linux_amd64.zip && \
   install -D -p -m 0755 terraform /usr/bin/terraform && \
   cd .. && rm -rf /tmp/tf
 
@@ -73,12 +75,12 @@ RUN mkdir tf && cd tf && curl -LO https://releases.hashicorp.com/terraform/1.5.6
 RUN /devops/bin/ansible-galaxy collection install -r requirements.yml
 
 ## Install yq
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
 
 ## Install gcloud
-RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-444.0.0-linux-x86_64.tar.gz && \
-  tar -xf google-cloud-cli-444.0.0-linux-x86_64.tar.gz && \
-  rm google-cloud-cli-444.0.0-linux-x86_64.tar.gz && \
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-453.0.0-linux-x86_64.tar.gz && \
+  tar -xf google-cloud-cli-453.0.0-linux-x86_64.tar.gz && \
+  rm google-cloud-cli-453.0.0-linux-x86_64.tar.gz && \
   ./google-cloud-sdk/install.sh && \
   source /google-cloud-sdk/completion.bash.inc && \
   source /google-cloud-sdk/path.bash.inc && \
