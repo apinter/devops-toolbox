@@ -13,7 +13,11 @@ RUN zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo && \
   rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
   zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
 
-RUN zypper ref && zypper dup -y
+RUN zypper ref && zypper dup -y && \
+    cd /tmp && curl -LO https://www.mongodb.org/static/pgp/server-7.0.asc && \
+    rpm --import server-7.0.asc && \
+    rm server-7.0.asc
+
 RUN zypper in -y fish \
   zsh \
   just \
