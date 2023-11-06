@@ -4,7 +4,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest
 ## Add a custom Ansible config and collections/roles requirements
 COPY config/ansible.cfg /ansible.cfg
 COPY config/requirements.yml /requirements.yml
-COPY config/repo-mongo.repo /etc/zypp/repos.d/repo-mongo.repo
+COPY config/mongo.repo /etc/zypp/repos.d/repo-mongo.repo
 
 ## Update os and install reuired packages
 RUN zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo && \
