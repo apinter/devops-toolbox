@@ -6,46 +6,46 @@ COPY config/ansible.cfg /ansible.cfg
 COPY config/requirements.yml /requirements.yml
 COPY config/mongo.repo /etc/zypp/repos.d/repo-mongo.repo
 
-## Update os and install reuired packages
+## Add GH repo, Azure repo, MongoDB repo and import keys
 RUN zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo && \
   curl -L -o /tmp/gh.key "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x23F3D4EA75716059" && \
   rpm --import /tmp/gh.key && \
   rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
-  zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+  zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli && \
+  cd /tmp && curl -LO https://www.mongodb.org/static/pgp/server-7.0.asc && \
+  rpm --import server-7.0.asc && \
+  rm server-7.0.asc
 
+## Update os and install reuired packages
 RUN zypper ref && zypper dup -y && \
-    cd /tmp && curl -LO https://www.mongodb.org/static/pgp/server-7.0.asc && \
-    rpm --import server-7.0.asc && \
-    rm server-7.0.asc
-
-RUN zypper in -y fish \
-  zsh \
-  just \
-  unzip\
-  kubernetes-client \
-  python3 \
-  python3-devel \
-  python3-pip \
-  openssh-clients \
-  git \
-  openssl \
-  buildah \
-  curl \
-  wget \
-  helm \
-  sshpass \
-  vim \
-  nano \
-  nginx \
-  htop \
-  jq \
-  bat && \
-  mongodb-org-tools && \
-  mongodb-mongosh && \
-  postgresql15 && \
-  mariadb-client && \
-  zypper clean -a && \
-  zypper in -y --from azure-cli azure-cli
+    zypper in -y fish \
+      zsh \
+      just \
+      unzip\
+      kubernetes-client \
+      python3 \
+      python3-devel \
+      python3-pip \
+      openssh-clients \
+      git \
+      openssl \
+      buildah \
+      curl \
+      wget \
+      helm \
+      sshpass \
+      vim \
+      nano \
+      nginx \
+      htop \
+      jq \
+      bat \
+      mongodb-org-tools \
+      mongodb-mongosh \
+      postgresql15 \
+      mariadb-client && \
+    zypper in -y --from azure-cli azure-cli && \
+    zypper cc
 
 RUN python3 -m venv /devops && /devops/bin/python3 -m pip install ansible \
     ansible-vault \
